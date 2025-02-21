@@ -1,0 +1,63 @@
+body {
+  font-family: Arial,Sans-serif;
+  font-size: 30px;
+  background-image: url("../recursos/comedia.png");
+  background-repeat: no-repeat;
+}
+.titol {
+  font-size: 40px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.contenidor {
+  margin:0;
+  text-align: center;
+}
+.div_main {
+  display: block;
+}
+.div_intern {
+  display: block;
+}
+.div_botons {
+  display: none;
+}
+.error {
+  display: none;
+  visibility: hidden;
+  margin-bottom: 10px;
+  text-align: left;
+  color: red;
+}
+.escena {
+  display: none;
+  margin-bottom: 10px;
+  min-height: 200px;
+  text-align: left;
+}
+div#div_formulari {
+  display: block;
+  margin: 40px auto 10px auto;
+}
+#seleccio_escenes {
+  border: 1px solid blue;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 0 50px;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+  font-size: 30px;
+}
+input[type=submit] {
+  font-size: 30px;
+}
+.text {
+  font-size: 30px;
+  font-weight: normal;
+}
+.imatge {
+  width: 48px;
+  padding-left: 20px;
+  padding-right: 20px;
+}

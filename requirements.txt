@@ -1,0 +1,9 @@
+Flask
+gTTS
+pydub
+soundfile
+playsound
+pyworld
+SpeechRecognition
+python-dotenv
+gunicorn
