@@ -1,10 +1,11 @@
 AudioSegment
 Flask
+flask-socketio
 gTTS
+pyaudio
 pydub
 pyworld
 python-dotenv
-SocketIO
 SpeechRecognition
 soundfile
 gunicorn

@@ -4,18 +4,10 @@ function formulari() {
    var error, s_escena, i;
    s_escena = document.getElementById("seleccio_escenes");
    i = s_escena.selectedIndex;
-   if (i >= 0) {
-      error = "";
-      escena = s_escena.options[i].value;
-   }else {
-      error = "No has seleccionat cap escena";
-   }
-   //visible("div_formulari", false);
-   visible("div_error", true);
-   visible("escena_actual", true);
-   visible("div_botons", true);
-   document.getElementById("div_error").innerHTML = error;
-   return escena;
+   escena = s_escena.options[i].value;
+   form = document.getElementById("formulari");
+   form.value=escena;
+   form.submit();
 }
 
 function play(escena) {

@@ -12,7 +12,7 @@
 <body bgcolor="#FFFFFF">
   <div class="contenidor">
     <div class="titol">L'apuntador del teatre</div>
-    <form class="formulari" method="post" action="apuntador">
+    <form id="formulari" class="formulari" method="post" onchange="formulari();" action="apuntador">
       <div id="div_seleccio_escenes">
         <legend >Selecció d'escenes {{escena}}</legend>
         <select name="seleccio_escenes" id="seleccio_escenes" size=11>
@@ -28,7 +28,6 @@
             <option value="pompeu">Pompeu</option>
             <option value="tina">Tina</option>
         </select>
-        <p><input type="submit" value="enviar"></p>
       </div>
     </form>
   </div>

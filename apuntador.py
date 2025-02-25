@@ -5,6 +5,7 @@ Created on Thu Feb 20 16:32:05 2025
 @author: rafael
 
 pip install flask flask-socketio
+pip install -r requirements.txt
 
 Las aplicaciones Python con Flask deben ejecutarse desde una terminal.
 WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
@@ -14,25 +15,28 @@ Ejecutar en la nube:
 - crear una aplicación en dashboard.render.com
 """
 import os, re, time, glob
-#from pathlib import Path
 import difflib
 import threading
 
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
+#, emit
 #from dotenv import load_dotenv
 
 from gtts import gTTS
-from io import BytesIO
 import soundfile as sf
+
+#import pyaudio
+
 import pyworld as pw
 from pydub import AudioSegment
 from pydub.playback import play
 
-import playsound as plays
-import pyaudio
 import speech_recognition as sr
+#import pyttsx3
 
+#import playsound as ps
+#%%
 # -----------------
 # variables globals
 #
@@ -48,6 +52,8 @@ pattern_narrador = "([^\(]*)(\(.*?\))(.*)"
 dir_dades = "dades"
 dir_recursos = "static/img"
 arxiu_text = titol
+tmp3 = "tmp/temp.mp3"
+twav = "tmp/temp.wav"
 
 seq_fragment = 0  #numero sequencial per a la generacio del nom d'arxiu wav de sortida d'una sentencia
 seq_actor = 0     #numero sequencial per a la generacio del nom d'arxiu wav temporal de la veu de l'actor
@@ -64,7 +70,7 @@ Personatges = {'Joan':   {'speed': 1.20, 'grave': 3.6, 'reduction': 0.6},
 Narrador = {'speed': 1.22, 'grave': 1.6, 'reduction': 1.7}
 Narrador = "narrador"
 
-
+#%%
 def crear_app():
    app = Flask(__name__) #instancia de Flask
    socketio = SocketIO(app)
@@ -89,10 +95,14 @@ def crear_app():
 
    #%%
    def beep():
-      plays.playsound(f"{dir_recursos}/beep.wav")
+      #ps.playsound(f"{dir_recursos}/beep.wav")
+      song = AudioSegment.from_wav(f"{dir_recursos}/beep.wav")
+      play(song)
 
    def beep_error():
-      plays.playsound(f"{dir_recursos}/laser.wav")
+      #ps.playsound(f"{dir_recursos}/laser.wav")
+      song = AudioSegment.from_wav(f"{dir_recursos}/laser.wav")
+      play(song)
 
    '''
    Compara 2 textos i indica el percentatge de semblances
@@ -112,11 +122,10 @@ def crear_app():
    @type audio: AudioSource; audio d'entrada que es vol convertir a text
    @type r: Recognizer; instància de speech_recognition.Recognizer()
    '''
-   def ReconeixementDeAudio(audio, r):
+   def reconeixement_d_audio(audio, r):
       text_reconegut = ""
-      # Google Speech Recognition
       try:
-         # for testing purposes, we're just using the default API key
+         # Google Speech Recognition. For testing purposes, we're just using the default API key
          # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
          text_reconegut = r.recognize_google(audio, language="ca")
          print(f"- {text_reconegut}")
@@ -136,42 +145,58 @@ def crear_app():
       with sr.AudioFile(warxiu) as source:
          audio = r.record(source)  # read the entire audio file
 
-      text_reconegut = ReconeixementDeAudio(audio, r)
+      text_reconegut = reconeixement_d_audio(audio, r)
       return text_reconegut
 
 
-   '''
-   Grava un text a un arxiu d'audio
-   @type text: string; text que es grava
-   @type file_name: string; nom del fitxer wav on es grava la veu
-   '''
-   def grava_audio(text, wf):
-      fragment = 1024
-      format = pyaudio.paInt16
-      canals = 1     # channels, must be one for forced alignment toolkit to work
-      taxa = 16000   # freqüència de mostreig (sample rate)
-      temps = 5      # nombre de segons de temps per poder dir la frase
+# =============================================================================
+#    '''
+#    Grava un text a un arxiu d'audio
+#    @type text: string; text que es grava
+#    @type file_name: string; nom del fitxer wav on es grava la veu
+#    '''
+#    def grava_audio(text, wf):
+#       fragment = 1024
+#       format = pyaudio.paInt16
+#       canals = 1     # channels, must be one for forced alignment toolkit to work
+#       taxa = 16000   # freqüència de mostreig (sample rate)
+#       temps = 5      # nombre de segons de temps per poder dir la frase
+#
+#       #print(f"Llegeix en veu alta: {text}", end=" ")
+#       beep()
+#
+#       p = pyaudio.PyAudio()
+#       stream = p.open(format=format, channels=canals, rate=taxa, input=True, frames_per_buffer=fragment)
+#
+#       frames = []
+#       for i in range(0, int(taxa / fragment * temps)):
+#          data = stream.read(fragment)
+#          frames.append(data)
+#
+#       stream.stop_stream()
+#       stream.close()
+#       p.terminate()
+#
+#       wf.setnchannels(canals)
+#       wf.setsampwidth(p.get_sample_size(format))
+#       wf.setframerate(taxa)
+#       wf.writeframes(b''.join(frames))
+#       wf.close()
+# =============================================================================
 
-      #print(f"Llegeix en veu alta: {text}", end=" ")
+   '''
+   Genera un arxiu de text a partir de la veu captada pel micròfon
+   @type text: string; text que es llegeiix davant del micròfon
+   '''
+   def escolta_microfon(text):
+      r = sr.Recognizer()
       beep()
+      with sr.Microphone() as source:
+         audio = r.listen(source)
 
-      p = pyaudio.PyAudio()
-      stream = p.open(format=format, channels=canals, rate=taxa, input=True, frames_per_buffer=fragment)
-
-      frames = []
-      for i in range(0, int(taxa / fragment * temps)):
-         data = stream.read(fragment)
-         frames.append(data)
-
-      stream.stop_stream()
-      stream.close()
-      p.terminate()
-
-      wf.setnchannels(canals)
-      wf.setsampwidth(p.get_sample_size(format))
-      wf.setframerate(taxa)
-      wf.writeframes(b''.join(frames))
-      wf.close()
+      text_reconegut = reconeixement_d_audio(audio, r)
+      print(f"text_reconegut: {text_reconegut}")
+      return text_reconegut
 
    '''
    Grava en viu la veu de l'actor, genera el text corresponent i el compara amb el text que li correspon
@@ -180,9 +205,9 @@ def crear_app():
    '''
    def escolta_actor(text):
       global actor
-      wav_buf = BytesIO()
-      grava_audio(text, wav_buf)
-      nou_text = audio_a_text(wav_buf)
+      # grava_audio(text, twav)
+      # nou_text = audio_a_text(twav)
+      nou_text = escolta_microfon(text)
       encert = 0
       if nou_text:
          encert = ComparaSekuenciesDeText(text, nou_text)
@@ -207,24 +232,19 @@ def crear_app():
 
           # Generar un arxiu d'audio temporal amb gTTS
           tts = gTTS(text, lang='ca')
-          mp3_buf = BytesIO()
-          tts.write_to_fp(mp3_buf)
+          tts.save(tmp3)
 
           # Convertir l'objecte mp3 a wav
-          audio = AudioSegment.from_mp3(mp3_buf)
+          audio = AudioSegment.from_mp3(tmp3)
           #play(audio)
-          wav_buf = BytesIO()
-          audio.export(wav_buf, format="wav")
+          audio.export(twav, format="wav")
 
           # tractament de l'audio
-          data, samplerate = sf.read(wav_buf)
+          data, samplerate = sf.read(twav)
           f0, sp, ap = pw.wav2world(data, samplerate)
           yy = pw.synthesize(f0/grave, sp/reduction, ap, samplerate/speed, pw.default_frame_period)
-          wav_buf = BytesIO()
-          wav_buf.name = 'file.wav'
-          sf.write(wav_buf, yy, samplerate)
-          wav_buf.seek(0)
-          audio = AudioSegment.from_wav(wav_buf)
+          sf.write(twav, yy, samplerate)
+          audio = AudioSegment.from_wav(twav)
           play(audio)
 
       return mostra_sentencia(text, ends)
@@ -322,14 +342,14 @@ def crear_app():
             else:
                ret += processa_fragment(sentencia, escena, Narrador, "\n")
 
-         if stop:
-            break  # Detener la lectura
-         while en_pausa:
-            time.sleep(0.1)  # Esperar mientras esté en pausa
+            if stop:
+               break  # Detener la lectura
+            while en_pausa:
+               time.sleep(0.1)  # Esperar mientras esté en pausa
 
-         print(ret)
-         socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
-         time.sleep(1)
+            print(ret)
+            socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
+            time.sleep(.5)
 
    def principal():
       global actor, arxiu_text
