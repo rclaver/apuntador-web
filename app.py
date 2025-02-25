@@ -262,7 +262,6 @@ def crear_app():
    Mostra el text que s'està processant.
    '''
    def mostra_sentencia(text, ends):
-      time.sleep(.5)
       text = codifica_html(text) + ends
       return text
 
@@ -349,7 +348,7 @@ def crear_app():
 
             print(ret)
             socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
-            time.sleep(.5)
+            time.sleep(.1)
 
    def principal():
       global actor, arxiu_text
@@ -366,8 +365,11 @@ def crear_app():
             escenes.sort()
             print("escenes:", escenes)
             for e in escenes:
-               print("escena actual:", e)
-               processa_escena(e)
+               if stop:
+                  break
+               else:
+                  print("escena actual:", e)
+                  processa_escena(e)
 
 
    #%%
@@ -386,6 +388,12 @@ def crear_app():
        en_pausa = False
        threading.Thread(target=principal).start()
 
+   @socketio.on('record')
+   def handle_record():
+       global stop
+       print("botó stop")
+       stop = True
+
    @socketio.on('pausa')
    def handle_pause():
        global en_pausa
@@ -398,36 +406,33 @@ def crear_app():
        print("botó stop")
        stop = True  # Detener la lectura del archivo
 
-   #%%
-   @app.route("/inici")
-   def inici():
-      global estat
-      estat = "stop"
-      ret = principal()
-      return ret
-
-
-   #%%
-   @app.route("/stop", methods = ["GET", "POST"])
-   def stop():
-      global estat
-      estat = "inici"
-      return render_template("apuntador.tpl", actor=actor, estat=estat)
-
-
-   #%%
+# =============================================================================
+#    #%%
+#    @app.route("/inici")
+#    def inici():
+#       global estat
+#       estat = "stop"
+#       ret = principal()
+#       return ret
+#
+#    #%%
+#    @app.route("/stop", methods = ["GET", "POST"])
+#    def stop():
+#       global estat
+#       estat = "inici"
+#       return render_template("apuntador.tpl", actor=actor, estat=estat)
+# =============================================================================
+#%%
    @app.route("/anterior", methods = ["GET", "POST"])
    def anterior():
       global estat
       return render_template("apuntador.tpl", actor=actor, estat=estat)
 
-
-   #%%
    @app.route("/seguent", methods = ["GET", "POST"])
    def seguent():
       global estat
       return render_template("apuntador.tpl", actor=actor, estat=estat)
-
+#%%
 
    return app
 

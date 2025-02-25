@@ -12,7 +12,7 @@
 <body bgcolor="#FFFFFF">
   <div class="contenidor">
     <div class="titol">L'apuntador del teatre</div>
-    <form id="formulari" class="formulari" method="post" onchange="formulari();" action="apuntador">
+    <form id="formulari" class="formulari" method="post" onClick="formulari();" action="apuntador">
       <div id="div_seleccio_escenes">
         <legend >Selecció d'escenes {{escena}}</legend>
         <select name="seleccio_escenes" id="seleccio_escenes" size=11>

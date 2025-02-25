@@ -16,14 +16,19 @@
     <div id="div_error" class="error text"></div>
     <div id="escena_actual" class="escena text">{{sentencia}}</div>
 
+    <div id="div_botons1" class="div_botons contenidor">
+      <img id="btn_record" class="imatge" src="{{url_for('static', filename='img/web-record.png')}}">
+    </div>
+
     <div id="div_botons" class="div_botons contenidor">
       <img id="btn_anterior" class="imatge" onClick="window.location.href='{{ url_for('anterior', escena=actor) }}';" src="{{url_for('static', filename='img/web-anterior.png')}}">
       <img id="{{'btn_' ~ estat}}" class="imatge" src="{{url_for('static', filename='img/web-' ~ estat ~ '.png')}}">
       <img id="btn_seguent" class="imatge" onClick="window.location.href='{{ url_for('seguent', escena=actor) }}';" src="{{url_for('static', filename='img/web-seguent.png')}}">
-      {% if estat == "stop" %}
-      <img id="btn_pausa" class="imatge" onClick="window.location.href='{{ url_for('pausa', escena=actor) }}';" src="{{url_for('static', filename='img/web-pausa.png')}}">
-      <img id="btn_record" class="imatge" onClick="window.location.href='{{ url_for('record', escena=actor) }}';" src="{{url_for('static', filename='img/web-record.png')}}">
-      {% endif %}
+
+    <div id="div_botons1" class="div_botons contenidor">
+      <img id="btn_pausa" class="imatge" src="{{url_for('static', filename='img/web-pausa.png')}}">
+      <img id="btn_stop" class="imatge" src="{{url_for('static', filename='img/web-stop.png')}}">
+    </div>
     </div>
   </div>
 
@@ -41,17 +46,16 @@
          contenedor.innerText = data.frase;
       });
 
-      // Enviar evento de "iniciar" al servidor
+      // Enviar evento "x" al servidor
       document.getElementById('btn_inici').onclick = function() {
          socket.emit('inici');
       };
-
-      // Enviar evento de "pausar" al servidor
+      document.getElementById('btn_record').onclick = function() {
+         socket.emit('record');
+      };
       document.getElementById('btn_pausa').onclick = function() {
          socket.emit('pausa');
       };
-
-      // Enviar evento de "detener" al servidor
       document.getElementById('btn_stop').onclick = function() {
          socket.emit('stop');
       };

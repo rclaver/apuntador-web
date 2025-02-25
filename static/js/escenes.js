@@ -12,6 +12,11 @@ document.getElementById('btn_inici').onclick = function() {
    socket.emit('inici');
 };
 
+// Enviar evento de "grabar" al servidor
+document.getElementById('btn_record').onclick = function() {
+   socket.emit('record');
+};
+
 // Enviar evento de "pausar" al servidor
 document.getElementById('btn_pausa').onclick = function() {
    socket.emit('pausa');
