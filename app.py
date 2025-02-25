@@ -342,6 +342,7 @@ def crear_app():
                ret += processa_fragment(sentencia, escena, Narrador, "\n")
 
             if stop:
+               f.close()
                break  # Detener la lectura
             while en_pausa:
                time.sleep(0.1)  # Esperar mientras esté en pausa
@@ -386,7 +387,11 @@ def crear_app():
        estat = "stop"
        stop = False
        en_pausa = False
-       threading.Thread(target=principal).start()
+       hilo = threading.Thread(target=principal)
+       if (not hilo.is_alive()):
+          hilo.start()
+       else:
+          principal()
 
    @socketio.on('record')
    def handle_record():
