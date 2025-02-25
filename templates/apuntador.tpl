@@ -28,7 +28,7 @@
   </div>
 
   {% if estat == "ini" %}
-     <script src="/static/js/escenes4.js"></script>
+     <script src="/static/js/escenes.js"></script>
   {% endif %}
 
   <script>

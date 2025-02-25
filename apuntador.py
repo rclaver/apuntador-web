@@ -82,7 +82,7 @@ def crear_app():
       if request.method == "POST":
          actor = request.form.get("seleccio_escenes")
       if actor:
-         return render_template("apuntador4.tpl", actor=actor)
+         return render_template("apuntador.tpl", actor=actor)
       else:
          return render_template("index.tpl")
 
@@ -201,31 +201,31 @@ def crear_app():
    def text_a_audio(text, veu_params, ends):
       # Si ends == ": " significa que text és el nom del personatge, per tant, no es genera audio
       # Si veu_params == "narrador" no es genera audio
-      # if ends != ": " and veu_params != "narrador":
-      #    # obtenir els parametres
-      #    speed, grave, reduction = list(veu_params.values())
+      if ends != ": " and veu_params != "narrador":
+          # obtenir els parametres
+          speed, grave, reduction = list(veu_params.values())
 
-      #    # Generar un arxiu d'audio temporal amb gTTS
-      #    tts = gTTS(text, lang='ca')
-      #    mp3_buf = BytesIO()
-      #    tts.write_to_fp(mp3_buf)
+          # Generar un arxiu d'audio temporal amb gTTS
+          tts = gTTS(text, lang='ca')
+          mp3_buf = BytesIO()
+          tts.write_to_fp(mp3_buf)
 
-      #    # Convertir l'objecte mp3 a wav
-      #    audio = AudioSegment.from_mp3(mp3_buf)
-      #    #play(audio)
-      #    wav_buf = BytesIO()
-      #    audio.export(wav_buf, format="wav")
+          # Convertir l'objecte mp3 a wav
+          audio = AudioSegment.from_mp3(mp3_buf)
+          #play(audio)
+          wav_buf = BytesIO()
+          audio.export(wav_buf, format="wav")
 
-      #    # tractament de l'audio
-      #    data, samplerate = sf.read(wav_buf)
-      #    f0, sp, ap = pw.wav2world(data, samplerate)
-      #    yy = pw.synthesize(f0/grave, sp/reduction, ap, samplerate/speed, pw.default_frame_period)
-      #    wav_buf = BytesIO()
-      #    wav_buf.name = 'file.wav'
-      #    sf.write(wav_buf, yy, samplerate)
-      #    wav_buf.seek(0)
-      #    audio = AudioSegment.from_wav(wav_buf)
-      #    play(audio)
+          # tractament de l'audio
+          data, samplerate = sf.read(wav_buf)
+          f0, sp, ap = pw.wav2world(data, samplerate)
+          yy = pw.synthesize(f0/grave, sp/reduction, ap, samplerate/speed, pw.default_frame_period)
+          wav_buf = BytesIO()
+          wav_buf.name = 'file.wav'
+          sf.write(wav_buf, yy, samplerate)
+          wav_buf.seek(0)
+          audio = AudioSegment.from_wav(wav_buf)
+          play(audio)
 
       return mostra_sentencia(text, ends)
 
@@ -392,21 +392,21 @@ def crear_app():
    def stop():
       global estat
       estat = "inici"
-      return render_template("apuntador4.tpl", actor=actor, estat=estat)
+      return render_template("apuntador.tpl", actor=actor, estat=estat)
 
 
    #%%
    @app.route("/anterior", methods = ["GET", "POST"])
    def anterior():
       global estat
-      return render_template("apuntador4.tpl", actor=actor, estat=estat)
+      return render_template("apuntador.tpl", actor=actor, estat=estat)
 
 
    #%%
    @app.route("/seguent", methods = ["GET", "POST"])
    def seguent():
       global estat
-      return render_template("apuntador4.tpl", actor=actor, estat=estat)
+      return render_template("apuntador.tpl", actor=actor, estat=estat)
 
 
    return app

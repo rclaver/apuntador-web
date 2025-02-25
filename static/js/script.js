@@ -10,7 +10,7 @@ function formulari() {
    }else {
       error = "No has seleccionat cap escena";
    }
-   visible("div_formulari", false);
+   //visible("div_formulari", false);
    visible("div_error", true);
    visible("escena_actual", true);
    visible("div_botons", true);
