@@ -1,8 +1,10 @@
 body {
   font-family: Arial,Sans-serif;
   font-size: 30px;
-  background-image: url("../recursos/comedia.png");
+  background-image: url("../img/teatre.png");
   background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 .titol {
   font-size: 40px;
@@ -20,7 +22,7 @@ body {
   display: block;
 }
 .div_botons {
-  display: none;
+  /*display: none;*/
 }
 .error {
   display: none;
@@ -30,23 +32,25 @@ body {
   color: red;
 }
 .escena {
-  display: none;
+  /*display: none;*/
   margin-bottom: 10px;
   min-height: 200px;
   text-align: left;
+  background-color: #f0f8ffb0;
 }
 div#div_formulari {
   display: block;
-  margin: 40px auto 10px auto;
+  margin: 4px auto;
 }
-#seleccio_escenes {
+div#div_seleccio_escenes {
   border: 1px solid blue;
   border-radius: 5px;
-  padding: 10px 20px;
-  margin: 0 50px;
+  padding: 20px 0;
   overflow: hidden;
   width: 100%;
   text-align: center;
+}
+#seleccio_escenes {
   font-size: 30px;
 }
 input[type=submit] {
