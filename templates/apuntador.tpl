@@ -7,56 +7,46 @@
   {% if sentencia is not defined %}
      {% set sentencia = "Escenes per a: " ~ actor %}
   {% endif %}
-  {% if estat is not defined %}
-     {% set estat = "inici" %}
-  {% endif %}
 
   <div class="contenidor">
     <div class="titol">L'apuntador del teatre</div>
     <div id="div_error" class="error text"></div>
     <div id="escena_actual" class="escena text">{{sentencia}}</div>
 
-    <div id="div_botons1" class="div_botons contenidor">
-      <img id="btn_record" class="imatge" src="{{url_for('static', filename='img/web-record.png')}}">
-    </div>
-
     <div id="div_botons" class="div_botons contenidor">
-      <img id="btn_anterior" class="imatge" onClick="window.location.href='{{ url_for('anterior', escena=actor) }}';" src="{{url_for('static', filename='img/web-anterior.png')}}">
-      <img id="{{'btn_' ~ estat}}" class="imatge" src="{{url_for('static', filename='img/web-' ~ estat ~ '.png')}}">
-      <img id="btn_seguent" class="imatge" onClick="window.location.href='{{ url_for('seguent', escena=actor) }}';" src="{{url_for('static', filename='img/web-seguent.png')}}">
-
-    <div id="div_botons1" class="div_botons contenidor">
-      <img id="btn_pausa" class="imatge" src="{{url_for('static', filename='img/web-pausa.png')}}">
-      <img id="btn_stop" class="imatge" src="{{url_for('static', filename='img/web-stop.png')}}">
-    </div>
+      <img id="bt_anterior" class="imatge" src="{{url_for('static', filename='img/web-anterior.png')}}">
+      <img id="bt_stop" class="imatge" src="{{url_for('static', filename='img/web-stop.png')}}">
+      <img id="bt_inici" name="multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
+      <img id="bt_record" class="imatge" src="{{url_for('static', filename='img/web-record.png')}}">
+      <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
   </div>
 
-  {% if estat == "ini" %}
-     <script src="/static/js/escenes.js"></script>
-  {% endif %}
-
   <script>
-      // Conectarse al servidor WebSocket
+      var estat = "inici";
+
+      // Connectar-se al servidor WebSocket
       const socket = io.connect('http://' + document.domain + ':' + location.port);
 
-      // Evento que se dispara cuando el servidor envía una nueva línea
+      // Esdeveniment que es dispara quan el servidor envia una nova línia
       socket.on('new_line', function(data) {
-         const contenedor = document.getElementById("escena_actual");
-         contenedor.innerText = data.frase;
+         const escena = document.getElementById("escena_actual");
+         escena.innerText = data.frase;
       });
 
-      // Enviar evento "x" al servidor
-      document.getElementById('btn_inici').onclick = function() {
-         socket.emit('inici');
+      const multiboto = document.getElementsByName('multiboto');
+      multiboto[0].onclick = function() {
+         const estat_actiu = estat;
+         estat = (estat == "inici") ? "pausa" : "inici";
+         multiboto[0].src = "static/img/web-" + estat + ".png";
+         socket.emit(estat_actiu);
       };
-      document.getElementById('btn_record').onclick = function() {
+
+      document.getElementById('bt_record').onclick = function() {
+         // Envia esdeveniment al servidor
          socket.emit('record');
       };
-      document.getElementById('btn_pausa').onclick = function() {
-         socket.emit('pausa');
-      };
-      document.getElementById('btn_stop').onclick = function() {
+      document.getElementById('bt_stop').onclick = function() {
          socket.emit('stop');
       };
   </script>

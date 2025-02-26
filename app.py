@@ -20,7 +20,6 @@ import threading
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-#, emit
 #from dotenv import load_dotenv
 
 from gtts import gTTS
@@ -40,9 +39,13 @@ import speech_recognition as sr
 # -----------------
 # variables globals
 #
+C_NONE="\033[0m"
+CB_YLW="\033[1;33m"
+
 titol = "casats"
 actor = ""
 estat = "inici"
+fil = None
 en_pausa = False
 stop = False
 
@@ -51,7 +54,7 @@ pattern_narrador = "([^\(]*)(\(.*?\))(.*)"
 
 dir_dades = "dades"
 dir_recursos = "static/img"
-arxiu_text = titol
+base_arxiu_text = titol
 tmp3 = "tmp/temp.mp3"
 twav = "tmp/temp.wav"
 
@@ -116,6 +119,15 @@ def crear_app():
       text_1 = re.sub("\s+", " ", text_1).lower()
       encert = difflib.SequenceMatcher(None, text_1, text_2).ratio() * 100
       return encert
+
+   def codifica_html(text):
+      cerca = "ÀÈÉÍÒÓÚàèéíòóú"
+      subs = ["&Agrave;","&Egrave;","&Eacute;","&Iacute;","&Ograve;","&Oacute;","&Uacute;","&agrave;","&egrave;","&eacute;","&iacute;","&ograve;","&oacute;","&uacute;"]
+      i = 0
+      for s in cerca:
+         text.replace(s, subs[i])
+         i += 1
+      return text
 
    '''
    Transforma un audio en text (utilitza speech_recognition)
@@ -217,6 +229,13 @@ def crear_app():
          text_a_audio(text, Personatges[actor], "\n")
 
    '''
+   Mostra el text que s'està processant.
+   '''
+   def mostra_sentencia(text, ends):
+      text = codifica_html(text) + ends
+      return text
+
+   '''
    Genera l'arxiu d'audio corresponent al text
    @type text: string; text que es vol convertir en veu
    @type veu_params: llsta; llista de paràmetres de veu del personatge a tractar
@@ -248,22 +267,6 @@ def crear_app():
           play(audio)
 
       return mostra_sentencia(text, ends)
-
-   def codifica_html(text):
-      cerca = "ÀÈÉÍÒÓÚàèéíòóú"
-      subs = ["&Agrave;","&Egrave;","&Eacute;","&Iacute;","&Ograve;","&Oacute;","&Uacute;","&agrave;","&egrave;","&eacute;","&iacute;","&ograve;","&oacute;","&uacute;"]
-      i = 0
-      for s in cerca:
-         text.replace(s, subs[i])
-         i += 1
-      return text
-
-   '''
-   Mostra el text que s'està processant.
-   '''
-   def mostra_sentencia(text, ends):
-      text = codifica_html(text) + ends
-      return text
 
    """
    Parteix la sentència en fragments que puguin ser processats per gTTs
@@ -309,7 +312,7 @@ def crear_app():
       global stop, en_pausa
       escena = f"_{arxiu_escena}_" if arxiu_escena else "_"
       if not os.path.isfile(arxiu_escena):
-         arxiu_escena = f"{dir_dades}/{arxiu_text}.txt"
+         arxiu_escena = f"{dir_dades}/{base_arxiu_text}.txt"
 
       with open(arxiu_escena, 'r', encoding="utf-8") as f:
          sentencies = f.read().split('\n')
@@ -347,29 +350,26 @@ def crear_app():
             while en_pausa:
                time.sleep(0.1)  # Esperar mientras esté en pausa
 
-            print(ret)
+            print(ret, end="")
             socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
             time.sleep(.1)
 
    def principal():
-      global actor, arxiu_text
-      print("actor:", actor)
+      global actor, base_arxiu_text
+      #print("actor:", actor)
       if actor == "sencer":
          processa_escena("")
       else:
-         escenes = glob.glob(f"{dir_dades}/{arxiu_text}-{actor}-*")
+         escenes = glob.glob(f"{dir_dades}/{base_arxiu_text}-{actor}-*")
          if not escenes:
             processa_escena(actor)
          else:
-            arxiu_text += f"-{actor}-"
-            #escenes = os.scandir(f"{dir_dades}")
             escenes.sort()
-            print("escenes:", escenes)
             for e in escenes:
                if stop:
                   break
                else:
-                  print("escena actual:", e)
+                  #print("escena actual:", e)
                   processa_escena(e)
 
 
@@ -377,39 +377,40 @@ def crear_app():
    # Evento que se dispara cuando un cliente se conecta
    @socketio.on('connect')
    def handle_connect():
-       print("Client connectat")
+       print(f"{CB_YLW}Client connectat{C_NONE}")
        # Iniciamos la lectura del archivo en un hilo separado para no bloquear el servidor
 
    @socketio.on('inici')
    def handle_start():
-       global estat, stop, en_pausa
-       print("botó inici")
-       estat = "stop"
+       global fil, estat, stop, en_pausa
+       print(f"{CB_YLW}botó inici{C_NONE}")
+       estat = "inici"
        stop = False
        en_pausa = False
-       hilo = threading.Thread(target=principal)
-       if (not hilo.is_alive()):
-          hilo.start()
-       else:
-          principal()
-
-   @socketio.on('record')
-   def handle_record():
-       global stop
-       print("botó stop")
-       stop = True
+       if not fil or not fil.is_alive():
+          fil = threading.Thread(target=principal)
+          fil.start()
 
    @socketio.on('pausa')
    def handle_pause():
-       global en_pausa
-       print("botó pausa")
+       global estat, en_pausa
+       print(f"{CB_YLW}botó pausa{C_NONE}")
+       estat = "pausa"
        en_pausa = not en_pausa
+
+   @socketio.on('record')
+   def handle_record():
+       global estat, stop
+       print(f"{CB_YLW}botó record{C_NONE}")
+       estat = "record"
+       stop = True
 
    @socketio.on('stop')
    def handle_stop():
-       global stop
-       print("botó stop")
-       stop = True  # Detener la lectura del archivo
+       global estat, stop
+       print(f"{CB_YLW}botó stop{C_NONE}")
+       estat = "stop"
+       stop = True  # Aturar la lectura de l'arxiu
 
 # =============================================================================
 #    #%%
@@ -426,17 +427,17 @@ def crear_app():
 #       global estat
 #       estat = "inici"
 #       return render_template("apuntador.tpl", actor=actor, estat=estat)
+#    #%%
+#    @app.route("/anterior", methods = ["GET", "POST"])
+#    def anterior():
+#       global estat
+#       return render_template("apuntador.tpl", actor=actor, estat=estat)
+#
+#    @app.route("/seguent", methods = ["GET", "POST"])
+#    def seguent():
+#       global estat
+#       return render_template("apuntador.tpl", actor=actor, estat=estat)
 # =============================================================================
-#%%
-   @app.route("/anterior", methods = ["GET", "POST"])
-   def anterior():
-      global estat
-      return render_template("apuntador.tpl", actor=actor, estat=estat)
-
-   @app.route("/seguent", methods = ["GET", "POST"])
-   def seguent():
-      global estat
-      return render_template("apuntador.tpl", actor=actor, estat=estat)
 #%%
 
    return app
