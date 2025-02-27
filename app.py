@@ -41,6 +41,7 @@ import speech_recognition as sr
 #
 C_NONE="\033[0m"
 CB_YLW="\033[1;33m"
+CB_BLU="\033[1;34m"
 
 titol = "casats"
 actor = ""
@@ -275,7 +276,7 @@ def crear_app():
    @type ends: string; caracter de finalització de la funció print
    """
    def processa_fragment(text, escena, to_veu, ends):
-      global seq_fragment, seq_actor, pendent_escolta
+      global seq_fragment, seq_actor, pendent_escolta, en_pausa
       ret = ""
       long_text = len(text)
       ini = 0
@@ -287,9 +288,12 @@ def crear_app():
             long_max = long_text
          text = text[ini:ini+long_max]
 
+         print(f"{CB_BLU}processa_fragment: TEXT: {text.lower()} - ACTOR: {actor.lower()}{C_NONE}")
          seq_fragment += 1
-         if text == actor:
+         if text.lower() == actor.lower():
             pendent_escolta = True
+            en_pausa = True
+            print(f"{CB_YLW}processa_fragment: activant 'en_pausa'{C_NONE}")
             ret = mostra_sentencia(text, ends)
          elif pendent_escolta == True:
             pendent_escolta = False
@@ -325,6 +329,13 @@ def crear_app():
             if ma:
                personatje = ma.group(1)
                ret = processa_fragment(personatje, escena, Narrador, ": ")
+               print(f"{CB_YLW}PROCESSA_ESCENA: en_pausa: {en_pausa} - pendent_escolta: {pendent_escolta}{C_NONE}")
+
+               while en_pausa and pendent_escolta:
+                  time.sleep(0.1)  # Esperar mentre estigui grabant
+               if en_pausa and pendent_escolta:
+                  en_pausa = False
+
                to_veu = Personatges[personatje] if personatje in Personatges else Narrador
                # extraure, del text ma(3), els comentaris del narrador
                mb = re.match(pattern_narrador, ma.group(3))
@@ -346,9 +357,9 @@ def crear_app():
 
             if stop:
                f.close()
-               break  # Detener la lectura
+               break  # Detenir la lectura
             while en_pausa:
-               time.sleep(0.1)  # Esperar mientras esté en pausa
+               time.sleep(0.1)  # Esperar mentre estigui en pausa
 
             print(ret, end="")
             socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente

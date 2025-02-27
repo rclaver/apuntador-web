@@ -1,5 +1,7 @@
 .htaccess
 .env
+*.mp3
+*.wav
 *.pyc
 .venv
 .spyproject
