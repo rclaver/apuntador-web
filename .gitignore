@@ -1,5 +1,6 @@
 .htaccess
 .env
+tmp/
 *.mp3
 *.wav
 *.pyc

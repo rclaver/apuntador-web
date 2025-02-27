@@ -25,7 +25,8 @@ from flask_socketio import SocketIO
 from gtts import gTTS
 import soundfile as sf
 
-#import pyaudio
+import pyaudio
+import wave
 
 import pyworld as pw
 from pydub import AudioSegment
@@ -162,54 +163,61 @@ def crear_app():
       return text_reconegut
 
 
-# =============================================================================
-#    '''
-#    Grava un text a un arxiu d'audio
-#    @type text: string; text que es grava
-#    @type file_name: string; nom del fitxer wav on es grava la veu
-#    '''
-#    def grava_audio(text, wf):
-#       fragment = 1024
-#       format = pyaudio.paInt16
-#       canals = 1     # channels, must be one for forced alignment toolkit to work
-#       taxa = 16000   # freqüència de mostreig (sample rate)
-#       temps = 5      # nombre de segons de temps per poder dir la frase
-#
-#       #print(f"Llegeix en veu alta: {text}", end=" ")
-#       beep()
-#
-#       p = pyaudio.PyAudio()
-#       stream = p.open(format=format, channels=canals, rate=taxa, input=True, frames_per_buffer=fragment)
-#
-#       frames = []
-#       for i in range(0, int(taxa / fragment * temps)):
-#          data = stream.read(fragment)
-#          frames.append(data)
-#
-#       stream.stop_stream()
-#       stream.close()
-#       p.terminate()
-#
-#       wf.setnchannels(canals)
-#       wf.setsampwidth(p.get_sample_size(format))
-#       wf.setframerate(taxa)
-#       wf.writeframes(b''.join(frames))
-#       wf.close()
-# =============================================================================
+   '''
+   Grava un text a un arxiu d'audio
+   @type text: string; text que es grava
+   @type wfile: string; nom del fitxer wav on es grava la veu
+   '''
+   def grava_audio(text, wfile):
+      fragment = 1024
+      format = pyaudio.paInt16
+      canals = 1     # channels, must be one for forced alignment toolkit to work
+      taxa = 16000   # freqüència de mostreig (sample rate)
+      temps = int(round(len(text)/10,0))    # nombre de segons de temps per poder dir la frase
 
-   '''
-   Genera un arxiu de text a partir de la veu captada pel micròfon
-   @type text: string; text que es llegeiix davant del micròfon
-   '''
-   def escolta_microfon(text):
-      r = sr.Recognizer()
+      #print(f"Llegeix en veu alta: {text}", end=" ")
       beep()
-      with sr.Microphone() as source:
-         audio = r.listen(source)
 
-      text_reconegut = reconeixement_d_audio(audio, r)
-      print(f"text_reconegut: {text_reconegut}")
-      return text_reconegut
+      p = pyaudio.PyAudio()
+      stream = p.open(format=format, channels=canals, rate=taxa, input=True, frames_per_buffer=fragment)
+
+      frames = []
+      for i in range(0, int(taxa / fragment * temps)):
+          data = stream.read(fragment)
+          frames.append(data)
+
+      stream.stop_stream()
+      stream.close()
+      p.terminate()
+
+      with wave.open(wfile, 'wb') as wf:
+          wf.setnchannels(canals)
+          wf.setsampwidth(p.get_sample_size(format))
+          wf.setframerate(taxa)
+          wf.writeframes(b''.join(frames))
+
+# =============================================================================
+#    '''
+#    Genera un arxiu de text a partir de la veu captada pel micròfon
+#    @type text: string; text que es llegeiix davant del micròfon
+#    '''
+#    def escolta_microfon(text):
+#       timeout = 3    #temps que espera a sentir veu abans de generar una Excepció
+#       time_limit = int(round(len(text)/10,0))  # nombre de segons de temps per poder dir la frase
+#
+#       r = sr.Recognizer()
+#       beep()
+#       with sr.Microphone() as source:
+#          audio = r.adjust_for_ambient_noise(source)
+#          audio = r.listen(source, timeout=timeout, phrase_time_limit=time_limit)
+#          with open(twav, "wb") as f:
+#             f.write(audio.get_wav_data())
+#
+#       song = AudioSegment.from_wav(twav)
+#       text_reconegut = reconeixement_d_audio(song, r)
+#       print(f"text_reconegut: {text_reconegut}")
+#       return text_reconegut
+# =============================================================================
 
    '''
    Grava en viu la veu de l'actor, genera el text corresponent i el compara amb el text que li correspon
@@ -217,9 +225,9 @@ def crear_app():
    '''
    def escolta_actor(text, ends):
       global actor, audio_pendent
-      # grava_audio(text, twav)
-      # nou_text = audio_a_text(twav)
-      nou_text = escolta_microfon(text)
+      #nou_text = escolta_microfon(text)
+      grava_audio(text, twav)
+      nou_text = audio_a_text(twav)
       encert = 0
       if nou_text:
          encert = ComparaSekuenciesDeText(text, nou_text)

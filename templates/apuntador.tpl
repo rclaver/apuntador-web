@@ -1,4 +1,4 @@
-  {% include "head.tpl" %}
+{% include "head.tpl" %}
   <!--script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script-->
   <script src="/static/js/socket-io.js"></script>
 </head>
@@ -17,7 +17,6 @@
       <img id="bt_anterior" class="imatge" src="{{url_for('static', filename='img/web-anterior.png')}}">
       <img id="bt_stop" class="imatge" src="{{url_for('static', filename='img/web-stop.png')}}">
       <img id="bt_inici" name="multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
-      <img id="bt_record" class="imatge" src="{{url_for('static', filename='img/web-record.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
   </div>
@@ -42,11 +41,8 @@
          socket.emit(estat_actiu);
       };
 
-      document.getElementById('bt_record').onclick = function() {
-         // Envia esdeveniment al servidor
-         socket.emit('record');
-      };
       document.getElementById('bt_stop').onclick = function() {
+         // Envia esdeveniment al servidor
          socket.emit('stop');
       };
   </script>
