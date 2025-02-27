@@ -48,6 +48,7 @@ actor = ""
 estat = "inici"
 fil = None
 en_pausa = False
+en_grabacio = False
 stop = False
 
 pattern_person = "^(\w*?\s?)(:\s?)(.*$)"
@@ -59,9 +60,8 @@ base_arxiu_text = titol
 tmp3 = "tmp/temp.mp3"
 twav = "tmp/temp.wav"
 
-seq_fragment = 0  #numero sequencial per a la generacio del nom d'arxiu wav de sortida d'una sentencia
-seq_actor = 0     #numero sequencial per a la generacio del nom d'arxiu wav temporal de la veu de l'actor
 pendent_escolta = False  #indica si ha arribat el moment d'escoltar l'actor
+audio_pendent = None
 
 Personatges = {'Joan':   {'speed': 1.20, 'grave': 3.6, 'reduction': 0.6},
                'Gisela': {'speed': 1.30, 'grave': 0.9, 'reduction': 1.7},
@@ -100,7 +100,7 @@ def crear_app():
    #%%
    def beep():
       #ps.playsound(f"{dir_recursos}/beep.wav")
-      song = AudioSegment.from_wav(f"{dir_recursos}/beep.wav")
+      song = AudioSegment.from_wav(f"{dir_recursos}/laser.wav")
       play(song)
 
    def beep_error():
@@ -214,10 +214,9 @@ def crear_app():
    '''
    Grava en viu la veu de l'actor, genera el text corresponent i el compara amb el text que li correspon
    @type text: string; text que es vol gravar
-   @type warxiu: string; nom del fitxer wav on es gravarà la veu
    '''
-   def escolta_actor(text):
-      global actor
+   def escolta_actor(text, ends):
+      global actor, audio_pendent
       # grava_audio(text, twav)
       # nou_text = audio_a_text(twav)
       nou_text = escolta_microfon(text)
@@ -227,7 +226,11 @@ def crear_app():
       if encert < 90:
          beep_error()
          print(f"encert: {encert}", " ")
-         text_a_audio(text, Personatges[actor], "\n")
+         ret = text_a_audio(text, Personatges[actor.capitalize()], ends)
+      else:
+         ret = mostra_sentencia(text, ends)
+
+      return ret
 
    '''
    Mostra el text que s'està processant.
@@ -244,6 +247,7 @@ def crear_app():
                        (": ") indica que el paràmetre text és el nom del personatge
    '''
    def text_a_audio(text, veu_params, ends):
+      global audio_pendent
       # Si ends == ": " significa que text és el nom del personatge, per tant, no es genera audio
       # Si veu_params == "narrador" no es genera audio
       if ends != ": " and veu_params != "narrador":
@@ -264,8 +268,8 @@ def crear_app():
           f0, sp, ap = pw.wav2world(data, samplerate)
           yy = pw.synthesize(f0/grave, sp/reduction, ap, samplerate/speed, pw.default_frame_period)
           sf.write(twav, yy, samplerate)
-          audio = AudioSegment.from_wav(twav)
-          play(audio)
+          audio_pendent = AudioSegment.from_wav(twav)
+          #play(audio_pendent)
 
       return mostra_sentencia(text, ends)
 
@@ -276,7 +280,7 @@ def crear_app():
    @type ends: string; caracter de finalització de la funció print
    """
    def processa_fragment(text, escena, to_veu, ends):
-      global seq_fragment, seq_actor, pendent_escolta, en_pausa
+      global pendent_escolta, en_grabacio
       ret = ""
       long_text = len(text)
       ini = 0
@@ -288,17 +292,12 @@ def crear_app():
             long_max = long_text
          text = text[ini:ini+long_max]
 
-         print(f"{CB_BLU}processa_fragment: TEXT: {text.lower()} - ACTOR: {actor.lower()}{C_NONE}")
-         seq_fragment += 1
          if text.lower() == actor.lower():
             pendent_escolta = True
-            en_pausa = True
-            print(f"{CB_YLW}processa_fragment: activant 'en_pausa'{C_NONE}")
             ret = mostra_sentencia(text, ends)
          elif pendent_escolta == True:
             pendent_escolta = False
-            seq_actor += 1
-            escolta_actor(text)
+            ret = escolta_actor(text, ends)
             break
          else:
             ret += text_a_audio(text, to_veu, ends)
@@ -308,12 +307,25 @@ def crear_app():
       return ret
 
    '''
+   S'atura el thread mnetre dura la gabacio
+   '''
+   def en_process_de_grabacio(ret):
+      global en_grabacio
+      if en_grabacio or pendent_escolta:
+         print(ret, end="")
+         socketio.emit('new_line', {'frase': ret, 'estat': "record"})  # Enviar la línea al cliente
+      while en_grabacio or pendent_escolta:
+         time.sleep(0.1)  # Esperar mentre estigui grabant
+      if en_grabacio:
+         en_grabacio = False
+
+   '''
    Lectura del text sencer o de l'escena seleccionada de l'obra
    Partició del text en sentències (una sentència correspón a una línia del text)
    Cada sentència pot pertanyer, bé al narrador, bé a un personatge
    '''
    def processa_escena(arxiu_escena=""):
-      global stop, en_pausa
+      global stop, en_pausa, en_grabacio, audio_pendent
       escena = f"_{arxiu_escena}_" if arxiu_escena else "_"
       if not os.path.isfile(arxiu_escena):
          arxiu_escena = f"{dir_dades}/{base_arxiu_text}.txt"
@@ -323,18 +335,13 @@ def crear_app():
 
       for sentencia in sentencies:
          ret = ""
+         audio_pendent = None
          if sentencia:
             # extraure el personatje ma(1) i el text ma(3)
             ma = re.match(pattern_person, sentencia)
             if ma:
                personatje = ma.group(1)
                ret = processa_fragment(personatje, escena, Narrador, ": ")
-               print(f"{CB_YLW}PROCESSA_ESCENA: en_pausa: {en_pausa} - pendent_escolta: {pendent_escolta}{C_NONE}")
-
-               while en_pausa and pendent_escolta:
-                  time.sleep(0.1)  # Esperar mentre estigui grabant
-               if en_pausa and pendent_escolta:
-                  en_pausa = False
 
                to_veu = Personatges[personatje] if personatje in Personatges else Narrador
                # extraure, del text ma(3), els comentaris del narrador
@@ -342,14 +349,18 @@ def crear_app():
                if mb:
                   if mb.group(1) and mb.group(2) and mb.group(3):
                      ret += processa_fragment(mb.group(1), escena, to_veu, " ")
+                     en_process_de_grabacio(ret)
                      ret += processa_fragment(mb.group(2), escena, Narrador, " ")
                      ret += processa_fragment(mb.group(3), escena, to_veu, "\n")
+                     en_process_de_grabacio(ret)
                   elif mb.group(1) and mb.group(2):
                      ret += processa_fragment(mb.group(1), escena, to_veu, " ")
+                     en_process_de_grabacio(ret)
                      ret += processa_fragment(mb.group(2), escena, Narrador, "\n")
                   elif mb.group(2) and mb.group(3):
                      ret += processa_fragment(mb.group(2), escena, Narrador, " ")
                      ret += processa_fragment(mb.group(3), escena, to_veu, "\n")
+                     en_process_de_grabacio(ret)
                else:
                   ret += processa_fragment(ma.group(3), escena, to_veu, "\n")
             else:
@@ -364,6 +375,8 @@ def crear_app():
             print(ret, end="")
             socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
             time.sleep(.1)
+            if audio_pendent:
+               play(audio_pendent)
 
    def principal():
       global actor, base_arxiu_text
@@ -380,7 +393,6 @@ def crear_app():
                if stop:
                   break
                else:
-                  #print("escena actual:", e)
                   processa_escena(e)
 
 
@@ -411,10 +423,10 @@ def crear_app():
 
    @socketio.on('record')
    def handle_record():
-       global estat, stop
+       global estat, en_grabacio
        print(f"{CB_YLW}botó record{C_NONE}")
        estat = "record"
-       stop = True
+       en_grabacio = True
 
    @socketio.on('stop')
    def handle_stop():
