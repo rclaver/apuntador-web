@@ -34,9 +34,8 @@ from pydub.playback import play
 
 import speech_recognition as sr
 #import pyttsx3
-
 #import playsound as ps
-#%%
+
 # -----------------
 # variables globals
 #
@@ -75,18 +74,15 @@ Personatges = {'Joan':   {'speed': 1.20, 'grave': 3.6, 'reduction': 0.6},
 Narrador = {'speed': 1.22, 'grave': 1.6, 'reduction': 1.7}
 Narrador = "narrador"
 
-#%%
 def crear_app():
    app = Flask(__name__) #instancia de Flask
    socketio = SocketIO(app)
    key_secret = os.getenv("API_KEY")
 
-   #%%
    @app.route("/index")
    def index():
       return render_template("index.tpl")
 
-   #%%
    @app.route("/apuntador", methods = ["GET", "POST"])
    def apuntador():
       global actor
@@ -98,7 +94,6 @@ def crear_app():
          return render_template("index.tpl")
 
 
-   #%%
    def beep():
       #ps.playsound(f"{dir_recursos}/beep.wav")
       song = AudioSegment.from_wav(f"{dir_recursos}/laser.wav")
@@ -404,7 +399,6 @@ def crear_app():
                   processa_escena(e)
 
 
-   #%%
    # Evento que se dispara cuando un cliente se conecta
    @socketio.on('connect')
    def handle_connect():
@@ -444,7 +438,6 @@ def crear_app():
        stop = True  # Aturar la lectura de l'arxiu
 
 # =============================================================================
-#    #%%
 #    @app.route("/inici")
 #    def inici():
 #       global estat
@@ -452,13 +445,11 @@ def crear_app():
 #       ret = principal()
 #       return ret
 #
-#    #%%
 #    @app.route("/stop", methods = ["GET", "POST"])
 #    def stop():
 #       global estat
 #       estat = "inici"
 #       return render_template("apuntador.tpl", actor=actor, estat=estat)
-#    #%%
 #    @app.route("/anterior", methods = ["GET", "POST"])
 #    def anterior():
 #       global estat
@@ -469,11 +460,9 @@ def crear_app():
 #       global estat
 #       return render_template("apuntador.tpl", actor=actor, estat=estat)
 # =============================================================================
-#%%
 
    return app
 
-   #%%
 if __name__ == "__main__":
    '''
    Permet la creació de l'aplicació a GitHub

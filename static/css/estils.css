@@ -1,7 +1,7 @@
 body {
   font-family: Arial,Sans-serif;
   font-size: 18px;
-  background-image: url("../img/teatre618x1200.png");
+  background-image: url("../img/teatre618x1400.png");
   background-repeat: no-repeat;
   background-position: center;
   /*background-size: cover;*/
@@ -40,11 +40,6 @@ div#div_formulari {
   margin: 4px auto;
 }
 div#div_seleccio_escenes {
-  /*
-  border: 1px solid blue;
-  border-radius: 5px;
-  padding: 20px 0;
-  */
   margin: 0 auto;
   overflow: hidden;
   width: 50%;

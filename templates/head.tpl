@@ -7,4 +7,3 @@
   <title>L'apuntador del teatre</title>
   <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
   <link rel="stylesheet" type="text/css" href="/static/css/estils.css" />
-  <script src="/static/js/script.js"></script>
