@@ -19,32 +19,42 @@
       <img id="bt_inici" name="multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
+    <audio controls>
+       <source src="{{ url_for('static', filename='tmp/temp.wav') }}" type="audio/wav">
+    </audio>
   </div>
 
   <script>
-      var estat = "inici";
+      var boto = "inici";
 
       // Connectar-se al servidor WebSocket
-      const socket = io.connect('http://' + document.domain + ':' + location.port);
+      const socket = io.connect('https://' + document.domain + ':' + location.port);
 
       // Esdeveniment que es dispara quan el servidor envia una nova línia
       socket.on('new_line', function(data) {
+         const error = document.getElementById("div_error");
          const escena = document.getElementById("escena_actual");
          escena.innerText = data.frase;
+         error.innerText = (data.estat == 'record') ? "gravant ..." : "";
       });
 
       const multiboto = document.getElementsByName('multiboto');
       multiboto[0].onclick = function() {
-         const estat_actiu = estat;
-         estat = (estat == "inici") ? "pausa" : "inici";
-         multiboto[0].src = "static/img/web-" + estat + ".png";
-         socket.emit(estat_actiu);
+         const boto_actiu = boto;
+         boto = (boto == "inici") ? "pausa" : "inici";
+         multiboto[0].src = "static/img/web-" + boto + ".png";
+         socket.emit(boto_actiu);
       };
 
       document.getElementById('bt_stop').onclick = function() {
          // Envia esdeveniment al servidor
          socket.emit('stop');
       };
+      document.getElementById('bt_anterior').onclick = function() {
+         socket.emit('anterior');
+      };
+      document.getElementById('bt_seguent').onclick = function() {
+         socket.emit('seguent');
+      };
   </script>
-
 </body>

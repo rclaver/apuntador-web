@@ -57,8 +57,8 @@ pattern_narrador = "([^\(]*)(\(.*?\))(.*)"
 dir_dades = "dades"
 dir_recursos = "static/img"
 base_arxiu_text = titol
-tmp3 = "tmp/temp.mp3"
-twav = "tmp/temp.wav"
+tmp3 = "static/tmp/temp.mp3"
+twav = "static/tmp/temp.wav"
 
 pendent_escolta = False  #indica si ha arribat el moment d'escoltar l'actor
 audio_pendent = None
@@ -382,7 +382,7 @@ def crear_app():
                play(audio_pendent)
 
    def principal():
-      global actor, base_arxiu_text
+      global actor, base_arxiu_text, estat
       #print("actor:", actor)
       if actor == "sencer":
          processa_escena("")
@@ -392,11 +392,20 @@ def crear_app():
             processa_escena(actor)
          else:
             escenes.sort()
-            for e in escenes:
+            n_escenes = len(escenes)
+            i = 0
+            while i < n_escenes:
                if stop:
                   break
                else:
-                  processa_escena(e)
+                  if estat == "anterior" and i > 0:
+                     i -= 1
+                     estat = "inici"
+                  elif estat == "seguent" and i < n_escenes:
+                     i += 1
+                     estat = "inici"
+                  processa_escena(escenes[i])
+                  i += 1
 
 
    # Evento que se dispara cuando un cliente se conecta
@@ -437,6 +446,18 @@ def crear_app():
        estat = "stop"
        stop = True  # Aturar la lectura de l'arxiu
 
+   @socketio.on('anterior')
+   def handle_anterior():
+       global estat
+       print(f"{CB_YLW}botó anterior{C_NONE}")
+       estat = "anterior"
+
+   @socketio.on('seguent')
+   def handle_seguent():
+       global estat
+       print(f"{CB_YLW}botó seguent{C_NONE}")
+       estat = "seguent"
+
 # =============================================================================
 #    @app.route("/inici")
 #    def inici():
@@ -473,4 +494,4 @@ if __name__ == "__main__":
    equivale a ejecutar en una terminal el comando: flask run
    así, se activa el reconocimento de las aplicaciones Python en el puerto 5000 de localhost
    '''
-   app.run(host='localhost', port=5000, debug=False)
+   app.run(host='localhost', port=5500, debug=False)
