@@ -299,8 +299,9 @@ def crear_app():
             pendent_escolta = True
             ret = mostra_sentencia(text, ends)
          elif pendent_escolta == True:
-            pendent_escolta = False
+            en_process_de_grabacio(text)
             ret = escolta_actor(text, ends)
+            pendent_escolta = False
             break
          else:
             ret += text_a_audio(text, to_veu, ends)
@@ -317,17 +318,14 @@ def crear_app():
       if en_grabacio or pendent_escolta:
          print(ret, end="")
          socketio.emit('new_line', {'frase': ret, 'estat': "record"})  # Enviar la línea al cliente
-      while en_grabacio or pendent_escolta:
-         time.sleep(0.1)  # Esperar mentre estigui grabant
-      if en_grabacio:
-         en_grabacio = False
+      en_grabacio = False
 
    '''
    Lectura del text sencer o de l'escena seleccionada de l'obra
    Partició del text en sentències (una sentència correspón a una línia del text)
    Cada sentència pot pertanyer, bé al narrador, bé a un personatge
    '''
-   def processa_escena(arxiu_escena=""):
+   def processa_escena(arxiu_escena="", i=0, n_escenes=0):
       global stop, en_pausa, en_grabacio, audio_pendent
       escena = f"_{arxiu_escena}_" if arxiu_escena else "_"
       if not os.path.isfile(arxiu_escena):
@@ -352,24 +350,20 @@ def crear_app():
                if mb:
                   if mb.group(1) and mb.group(2) and mb.group(3):
                      ret += processa_fragment(mb.group(1), escena, to_veu, " ")
-                     en_process_de_grabacio(ret)
                      ret += processa_fragment(mb.group(2), escena, Narrador, " ")
                      ret += processa_fragment(mb.group(3), escena, to_veu, "\n")
-                     en_process_de_grabacio(ret)
                   elif mb.group(1) and mb.group(2):
                      ret += processa_fragment(mb.group(1), escena, to_veu, " ")
-                     en_process_de_grabacio(ret)
                      ret += processa_fragment(mb.group(2), escena, Narrador, "\n")
                   elif mb.group(2) and mb.group(3):
                      ret += processa_fragment(mb.group(2), escena, Narrador, " ")
                      ret += processa_fragment(mb.group(3), escena, to_veu, "\n")
-                     en_process_de_grabacio(ret)
                else:
                   ret += processa_fragment(ma.group(3), escena, to_veu, "\n")
             else:
                ret += processa_fragment(sentencia, escena, Narrador, "\n")
 
-            if stop:
+            if stop or (estat=="anterior" and i>0) or (estat=="seguent" and i<n_escenes):
                f.close()
                break  # Detenir la lectura
             while en_pausa:
@@ -404,8 +398,11 @@ def crear_app():
                   elif estat == "seguent" and i < n_escenes:
                      i += 1
                      estat = "inici"
-                  processa_escena(escenes[i])
+                  processa_escena(escenes[i], i, n_escenes)
                   i += 1
+
+      socketio.emit('new_line', {'frase': 'Finalitzat', 'estat': "stop"})
+      print('---------------- finalitzat ---------------------')
 
 
    # Evento que se dispara cuando un cliente se conecta

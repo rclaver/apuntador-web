@@ -19,7 +19,7 @@
       <img id="bt_inici" name="multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
-    <audio controls>
+    <audio>
        <source src="{{ url_for('static', filename='tmp/temp.wav') }}" type="audio/wav">
     </audio>
   </div>
