@@ -19,7 +19,7 @@
       <img id="bt_multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
-    <audio autoplay>
+    <audio id="audio" autoplay preload="none">
        <source src="{{ url_for('static', filename='tmp/temp.wav') }}" type="audio/wav">
     </audio>
   </div>
@@ -34,7 +34,9 @@
       socket.on('new_line', function(data) {
          const error = document.getElementById("div_error");
          const escena = document.getElementById("escena_actual");
+         const audio = document.getElementById("audio");
          escena.innerText = data.frase;
+         audio.src = (data.audio) ? "static/tmp/temp.wav" : "";
          error.innerText = (data.estat == 'record') ? "gravant ..." : "";
          error.innerText = (data.error) ? data.error : error.innerText;
       });

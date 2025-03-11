@@ -373,7 +373,8 @@ def crear_app():
                time.sleep(0.1)  # Esperar mentre estigui en pausa
 
             print(ret, end="")
-            socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar el text al client
+            posa_audio = True if audio_pendent else False
+            socketio.emit('new_line', {'frase': ret, 'estat': estat, 'audio':posa_audio})  # Enviar el text al client
             time.sleep(.1)
             if audio_pendent:
                play(audio_pendent)
