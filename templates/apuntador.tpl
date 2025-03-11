@@ -16,10 +16,10 @@
     <div id="div_botons" class="div_botons contenidor">
       <img id="bt_anterior" class="imatge" src="{{url_for('static', filename='img/web-anterior.png')}}">
       <img id="bt_stop" class="imatge" src="{{url_for('static', filename='img/web-stop.png')}}">
-      <img id="bt_inici" name="multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
+      <img id="bt_multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
-    <audio>
+    <audio autoplay>
        <source src="{{ url_for('static', filename='tmp/temp.wav') }}" type="audio/wav">
     </audio>
   </div>
@@ -28,7 +28,7 @@
       var boto = "inici";
 
       // Connectar-se al servidor WebSocket
-      const socket = io.connect('https://' + document.domain + ':' + location.port);
+      const socket = io.connect('http://' + document.domain + ':' + location.port);
 
       // Esdeveniment que es dispara quan el servidor envia una nova línia
       socket.on('new_line', function(data) {
@@ -36,18 +36,20 @@
          const escena = document.getElementById("escena_actual");
          escena.innerText = data.frase;
          error.innerText = (data.estat == 'record') ? "gravant ..." : "";
+         error.innerText = (data.error) ? data.error : error.innerText;
       });
 
-      const multiboto = document.getElementsByName('multiboto');
-      multiboto[0].onclick = function() {
+      const multiboto = document.getElementById('bt_multiboto');
+      multiboto.onclick = function() {
          const boto_actiu = boto;
          boto = (boto == "inici") ? "pausa" : "inici";
-         multiboto[0].src = "static/img/web-" + boto + ".png";
-         socket.emit(boto_actiu);
+         multiboto.src = "static/img/web-" + boto + ".png";
+         socket.emit(boto_actiu);  //envia esdeveniment al servidor
       };
 
       document.getElementById('bt_stop').onclick = function() {
-         // Envia esdeveniment al servidor
+         boto = "inici";
+         multiboto.src = "static/img/web-" + boto + ".png";
          socket.emit('stop');
       };
       document.getElementById('bt_anterior').onclick = function() {
@@ -57,4 +59,5 @@
          socket.emit('seguent');
       };
   </script>
+
 </body>

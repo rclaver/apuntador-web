@@ -139,7 +139,7 @@ def crear_app():
          text_reconegut = r.recognize_google(audio, language="ca")
          print(f"- {text_reconegut}")
       except sr.UnknownValueError:
-         print("Google Speech Recognition could not understand audio")
+         print("No he sentit res")
       except sr.RequestError as e:
          print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
@@ -168,7 +168,7 @@ def crear_app():
       format = pyaudio.paInt16
       canals = 1     # channels, must be one for forced alignment toolkit to work
       taxa = 16000   # freqüència de mostreig (sample rate)
-      temps = int(round(len(text)/10,0))    # nombre de segons de temps per poder dir la frase
+      temps = int(round(len(text)/10,0))    # segons de temps per poder dir la frase
 
       #print(f"Llegeix en veu alta: {text}", end=" ")
       beep()
@@ -229,6 +229,7 @@ def crear_app():
       if encert < 90:
          beep_error()
          print(f"encert: {encert}", " ")
+         socketio.emit('new_line', {'frase':"", 'error':f"No ho he entès bé: {encert}%"})  # Enviar la línia al client
          ret = text_a_audio(text, Personatges[actor.capitalize()], ends)
       else:
          ret = mostra_sentencia(text, ends)
@@ -298,9 +299,11 @@ def crear_app():
          if text.lower() == actor.lower():
             pendent_escolta = True
             ret = mostra_sentencia(text, ends)
+            print(f"{CB_BLU}pendent_escolta = True:{C_NONE}", ret)
          elif pendent_escolta == True:
             en_process_de_grabacio(text)
             ret = escolta_actor(text, ends)
+            print(f"{CB_BLU}pendent_escolta = False:{C_NONE}", ret)
             pendent_escolta = False
             break
          else:
@@ -316,8 +319,8 @@ def crear_app():
    def en_process_de_grabacio(ret):
       global en_grabacio
       if en_grabacio or pendent_escolta:
-         print(ret, end="")
-         socketio.emit('new_line', {'frase': ret, 'estat': "record"})  # Enviar la línea al cliente
+         print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
+         socketio.emit('new_line', {'frase': ret, 'estat': "record"})  # Enviar el text al client
       en_grabacio = False
 
    '''
@@ -370,7 +373,7 @@ def crear_app():
                time.sleep(0.1)  # Esperar mentre estigui en pausa
 
             print(ret, end="")
-            socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar la línea al cliente
+            socketio.emit('new_line', {'frase': ret, 'estat': estat})  # Enviar el text al client
             time.sleep(.1)
             if audio_pendent:
                play(audio_pendent)
@@ -405,12 +408,12 @@ def crear_app():
       print('---------------- finalitzat ---------------------')
 
 
-   # Evento que se dispara cuando un cliente se conecta
+   # Esdeveniment que es dispara quan un client es connecta
    @socketio.on('connect')
    def handle_connect():
        print(f"{CB_YLW}Client connectat{C_NONE}")
-       # Iniciamos la lectura del archivo en un hilo separado para no bloquear el servidor
 
+   # Iniciamos la lectura del archivo en un hilo separado para no bloquear el servidor
    @socketio.on('inici')
    def handle_start():
        global fil, estat, stop, en_pausa
@@ -491,4 +494,4 @@ if __name__ == "__main__":
    equivale a ejecutar en una terminal el comando: flask run
    así, se activa el reconocimento de las aplicaciones Python en el puerto 5000 de localhost
    '''
-   app.run(host='localhost', port=5500, debug=False)
+   app.run(host='localhost', port=5000, debug=False)
