@@ -18,7 +18,7 @@ import os, re, time, glob
 import difflib
 import threading
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, flash
 from flask_socketio import SocketIO
 #from dotenv import load_dotenv
 
@@ -59,6 +59,7 @@ dir_recursos = "static/img"
 base_arxiu_text = titol
 tmp3 = "static/tmp/temp.mp3"
 twav = "static/tmp/temp.wav"
+gwav = "static/tmp/gravacio.mp3"
 
 pendent_escolta = False  #indica si ha arribat el moment d'escoltar l'actor
 audio_pendent = None
@@ -93,6 +94,23 @@ def crear_app():
       else:
          return render_template("index.tpl")
 
+   @app.route('/desa-gravacio', methods=['POST'])
+   def desa_gravacio():
+       print("request.files", request.files, end="\n\n")
+       if 'file' not in request.files:
+           print('No hi ha element file')
+           return redirect(request.url)
+
+       file = request.files['file']
+       print("file.filename", file.filename, end="\n\n")
+
+       if file.filename == '':
+           flash('No has seleccionat cap fitxer')
+           return redirect(request.url)
+
+       file.save(file.filename)
+       return file.filename
+
 
    def beep():
       #ps.playsound(f"{dir_recursos}/beep.wav")
@@ -101,7 +119,7 @@ def crear_app():
 
    def beep_error():
       #ps.playsound(f"{dir_recursos}/laser.wav")
-      song = AudioSegment.from_wav(f"{dir_recursos}/laser.wav")
+      song = AudioSegment.from_wav(f"{dir_recursos}/error.wav")
       play(song)
 
    '''
@@ -221,8 +239,8 @@ def crear_app():
    def escolta_actor(text, ends):
       global actor, audio_pendent
       #nou_text = escolta_microfon(text)
-      grava_audio(text, twav)
-      nou_text = audio_a_text(twav)
+      #grava_audio(text, gwav)
+      nou_text = audio_a_text(gwav)
       encert = 0
       if nou_text:
          encert = ComparaSekuenciesDeText(text, nou_text)
@@ -320,7 +338,7 @@ def crear_app():
       global en_grabacio
       if en_grabacio or pendent_escolta:
          print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
-         socketio.emit('new_line', {'frase': ret, 'estat': "record"})  # Enviar el text al client
+         socketio.emit('new_line', {'frase': ret, 'estat': "gravacio"})  # Enviar el text al client
       en_grabacio = False
 
    '''
@@ -433,11 +451,11 @@ def crear_app():
        estat = "pausa"
        en_pausa = not en_pausa
 
-   @socketio.on('record')
-   def handle_record():
+   @socketio.on('gravacio')
+   def handle_gravacio():
        global estat, en_grabacio
-       print(f"{CB_YLW}botó record{C_NONE}")
-       estat = "record"
+       print(f"{CB_YLW}botó gravacio{C_NONE}")
+       estat = "gravacio"
        en_grabacio = True
 
    @socketio.on('stop')

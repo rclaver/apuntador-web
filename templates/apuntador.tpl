@@ -19,9 +19,8 @@
       <img id="bt_multiboto" class="imatge" src="{{url_for('static', filename='img/web-inici.png')}}">
       <img id="bt_seguent" class="imatge" src="{{url_for('static', filename='img/web-seguent.png')}}">
     </div>
-    <audio id="audio" autoplay preload="none">
-       <source src="{{ url_for('static', filename='tmp/temp.wav') }}" type="audio/wav">
-    </audio>
+    <img id="bt_gravacio" class="invisible" src="{{url_for('static', filename='img/web-gravacio.png')}}">
+    <audio id="audio" autoplay preload="none" type="audio/wav">
   </div>
 
   <script>
@@ -37,7 +36,15 @@
          const audio = document.getElementById("audio");
          escena.innerText = data.frase;
          audio.src = (data.audio) ? "static/tmp/temp.wav" : "";
-         error.innerText = (data.estat == 'record') ? "gravant ..." : "";
+         if (data.estat == 'gravacio') {
+            error.innerText = "gravant ...";
+            document.getElementById('bt_gravacio').click();
+         }else {
+            error.innerText = "";
+            if (gravacio) {
+               document.getElementById('bt_gravacio').click();
+            }
+         }
          error.innerText = (data.error) ? data.error : error.innerText;
       });
 
@@ -61,5 +68,52 @@
          socket.emit('seguent');
       };
   </script>
+  <script>
+    var gravacio = false;
 
+    navigator
+        .mediaDevices
+        .getUserMedia({audio: true})
+        .then(stream => { gestorMicrofon(stream) });
+
+    function gestorMicrofon(stream) {
+       rec = new MediaRecorder(stream);
+       rec.ondataavailable = e => {
+          audioChunks.push(e.data);
+          if (rec.state == "inactive") {
+             let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
+             sendData(blob);
+          }
+       }
+    }
+
+    function sendData(data) {
+        var form = new FormData();
+        form.append('file', data, 'static/tmp/gravacio.mp3');
+        form.append('title', 'gravacio.mp3');
+        $.ajax({
+            type: 'POST',
+            url: '/desa-gravacio',
+            data: form,
+            cache: false,
+            processData: false,
+            contentType: false
+        }).done(function(data) {
+            console.log(data);
+        });
+    }
+
+    bt_gravacio.onclick = e => {
+        if (gravacio) {
+           console.log('aturant gravació ...');
+           gravacio = false;
+           rec.stop();
+        }else {
+           console.log('iniciant gravació ...');
+           gravacio = true;
+           audioChunks = [];
+           rec.start();
+        }
+    };
+  </script>
 </body>

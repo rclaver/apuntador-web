@@ -61,3 +61,6 @@ div#div_seleccio_escenes {
   padding-left: 14px;
   padding-right: 14px;
 }
+.invisible {
+  width: 1px;
+}
