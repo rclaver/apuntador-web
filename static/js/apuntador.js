@@ -13,16 +13,8 @@ socket.on('new_line', function(data) {
    const audio = document.getElementById("audio");
    escena.innerText = data.frase;
    audio.src = (data.audio) ? "static/tmp/temp.wav" : (data.beep) ? data.beep : "";
-
    if (data.estat == 'gravacio') {
-      if (! gravacio) {
-         document.getElementById('bt_gravacio').click();
-      }
-   }else {
-      error.innerText = "";
-      if (gravacio) {
-         document.getElementById('bt_gravacio').click();
-      }
+      document.getElementById('bt_gravacio').click();
    }
    error.innerText = (data.error) ? data.error : error.innerText;
    if (data.error) {setTimeout(2000);}
@@ -52,6 +44,7 @@ document.getElementById('bt_seguent').onclick = function() {
 /***
  Grava l'audio captat pel micròfon en un arxiu d'audio
 */
+const MIN_DECIBELS = -45;
 var gravacio = false;
 
 if (navigator.mediaDevices) {
@@ -68,16 +61,45 @@ if (navigator.mediaDevices) {
         numberOfAudioChannels: 1,
         sampleRate: 16000,
       };
-      rec = new MediaRecorder(stream, options);
-      rec.ondataavailable = e => {
-         audioChunks.push(e.data);
-         console.log(e.data);
-         console.log(rec.state);
-         if (rec.state == "inactive") {
-            let blob = new Blob(audioChunks, {type: 'audio/webm'});
-            sendData(blob);
+      const rec = new MediaRecorder(stream, options);
+
+      rec.addEventListener("dataavailable", event => {
+         audioChunks.push(event.data);
+      });
+
+      const audioContext = new AudioContext();
+      const audioStreamSource = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.minDecibels = MIN_DECIBELS;
+      audioStreamSource.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const domainData = new Uint8Array(bufferLength);
+
+      let soundDetected = false;
+
+      const detectSound = () => {
+         if (soundDetected) {
+            return
          }
-      }
+         analyser.getByteFrequencyData(domainData);
+
+         for (let i = 0; i < bufferLength; i++) {
+            const value = domainData[i];
+            if (domainData[i] > 0) {
+               soundDetected = true
+            }
+         }
+         window.requestAnimationFrame(detectSound);
+      };
+
+      window.requestAnimationFrame(detectSound);
+
+      rec.addEventListener("stop", () => {
+         const audioBlob = new Blob(audioChunks, {type: 'audio/webm'});
+         sendData(blob);
+         gravacio = false;
+      });
    }
 
    function sendData(data) {
@@ -96,19 +118,16 @@ if (navigator.mediaDevices) {
    }
 
    bt_gravacio.onclick = e => {
-       if (gravacio) {
-          console.log('aturant gravació ...');
-          document.getElementById("div_error").innerText = "ATURANT gravació ...";
-          setTimeout(5000);
-          gravacio = false;
-          rec.stop();
-       }else {
-          console.log('iniciant gravació ...');
-          document.getElementById("div_error").innerText = "--- INICIANT la gravació ...";
-          gravacio = true;
-          audioChunks = [];
-          rec.start();
-       }
+      if (gravacio) {
+         setTimeout(2000);
+         gravacio = false;
+         rec.stop();
+      }else {
+         document.getElementById("div_error").innerText = "iniciant gravació ...";
+         gravacio = true;
+         audioChunks = [];
+         rec.start();
+      }
    };
 }
 

@@ -104,22 +104,28 @@ def crear_app():
          flash('No has seleccionat cap fitxer')
          return redirect(request.url)
 
-      print(f"{CB_BLU}desa_gravacio: file.filename{C_NONE}", request.files['file'].filename, end="\n\n")
+      print(f"{CB_BLU}desa_gravacio:{C_NONE}", request.files['file'].filename, end="\n\n")
       file = request.files['file']
       file.save(file.filename)
       return file.filename
 
 
    '''
-   Espera 1 segons per rebre la gravació feta en el client
+   Espera 1 segon per rebre la gravació feta en el client
    '''
    def espera_gravacio(arxiu):
       c = 0
-      while not os.path.exists(arxiu) and c <= 10:
-         time.sleep(.1)
+      while not os.path.exists(arxiu) and c <= 20:
+         time.sleep(0.1)
          c += 1
-      print(f"\nC: {c}\n\n")
+         print(f"espera gravacio: {c}")
       return os.path.exists(arxiu)
+
+   def espera(l):
+      c = 0
+      while c <= l:
+         time.sleep(0.1)
+         c += 1
 
    '''
    Compara 2 textos i indica el percentatge de semblances
@@ -223,6 +229,7 @@ def crear_app():
       if espera_gravacio(gmp3):
          # Convertir l'objecte mp3 a wav
          try:
+            print(f"{CB_BLU}Convertir l'objecte mp3 a wav{C_NONE}")
             audio = AudioSegment.from_mp3(gmp3)
             audio.export(gwav, format="wav")
             nou_text = audio_a_text(gwav)
@@ -250,7 +257,8 @@ def crear_app():
       if en_grabacio or pendent_escolta:
          print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
          socketio.emit('new_line', {'frase':ret, 'estat':"gravacio", 'beep':beep})  # Enviar el text al client
-         time.sleep(len(ret)/12)
+         #espera(len(ret)/10)
+         #socketio.emit('new_line', {'frase':"", 'estat':"gravacio"})  # Enviar el text al client
       en_grabacio = False
 
    """
@@ -341,7 +349,7 @@ def crear_app():
 
             print(ret, end="")
             posa_audio = True if audio_pendent else False
-            retard = int(round(len(ret)/12,0)) if posa_audio else 0.5
+            retard = len(ret)/12 if posa_audio else 0.5
             socketio.emit('new_line', {'frase':ret, 'estat':estat, 'audio':posa_audio})  # Enviar el text al client
             time.sleep(retard)
 

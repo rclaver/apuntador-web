@@ -23,5 +23,4 @@
     <audio id="audio" autoplay="autoplay" preload="none" type="audio/wav"></audio>
   </div>
   <script src="/static/js/apuntador.js"></script>
-  <script src="/static/js/test.js"></script>
 </body>
