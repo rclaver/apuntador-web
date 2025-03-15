@@ -21,5 +21,5 @@
     <img id="bt_gravacio" class="invisible" src="{{url_for('static', filename='img/web-gravacio.png')}}">
     <audio id="audio" autoplay="autoplay" preload="none" type="audio/wav"></audio>
   </div>
-  <script src="/static/js/apuntador-web.js"></script>
+  <script src="/static/js/apuntador.js"></script>
 </body>

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Feb 20 16:32:05 2025
 @author: rafael
@@ -109,7 +107,7 @@ def crear_app():
    '''
    def espera_gravacio(arxiu):
       c = 0
-      while not os.path.exists(arxiu) and c <= 20:
+      while not os.path.exists(arxiu) and c <= 10:
          time.sleep(0.1)
          c += 1
          print(f"espera gravacio: {c}")
@@ -251,8 +249,8 @@ def crear_app():
       if en_grabacio or pendent_escolta:
          print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
          socketio.emit('new_line', {'frase':ret, 'estat':"gravacio", 'beep':beep})  # Enviar el text al client
-         #espera(len(ret)/10)
-         #socketio.emit('new_line', {'frase':"", 'estat':"gravacio"})  # Enviar el text al client
+         espera(len(ret)/10)
+         socketio.emit('new_line', {'frase':"", 'estat':"gravacio"})  # Enviar el text al client
       en_grabacio = False
 
    """
