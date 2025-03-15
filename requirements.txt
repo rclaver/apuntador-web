@@ -9,3 +9,4 @@ pyworld==0.3.4
 SocketIO
 soundfile>=0.12.1
 SpeechRecognition==3.14.1
+werkzeug
