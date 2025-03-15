@@ -16,7 +16,7 @@ import os, re, time, glob
 import difflib
 import threading
 
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect
 from flask_socketio import SocketIO
 #from dotenv import load_dotenv
 
@@ -89,13 +89,6 @@ def crear_app():
 
    @app.route('/desa-gravacio', methods=['POST'])
    def desa_gravacio():
-      if 'file' not in request.files:
-         flash('No hi ha element file')
-         return redirect(request.url)
-      if request.files['file'].filename == '':
-         flash('No has seleccionat cap fitxer')
-         return redirect(request.url)
-
       print(f"{CB_BLU}desa_gravacio:{C_NONE}", request.files['file'].filename, end="\n\n")
       file = request.files['file']
       file.save(file.filename)
