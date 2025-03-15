@@ -1,6 +1,5 @@
 {% include "head.tpl" %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
-  <!--script src="/static/js/socket-io.js"></script-->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 
@@ -22,5 +21,5 @@
     <img id="bt_gravacio" class="invisible" src="{{url_for('static', filename='img/web-gravacio.png')}}">
     <audio id="audio" autoplay="autoplay" preload="none" type="audio/wav"></audio>
   </div>
-  <script src="/static/js/apuntador.js"></script>
+  <script src="/static/js/apuntador-web.js"></script>
 </body>

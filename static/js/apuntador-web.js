@@ -1,5 +1,5 @@
 /***
- Gestiona la comunicaciÃ³ entre el servidor i el client
+ Gestiona la comunicació entre el servidor i el client
 */
 var boto = "inici";
 
@@ -42,7 +42,7 @@ document.getElementById('bt_seguent').onclick = function() {
 
 
 /***
- Grava l'audio captat pel micrÃ²fon en un arxiu d'audio
+ Grava l'audio captat pel micròfon en un arxiu d'audio
 */
 const MIN_DECIBELS = -45;
 var gravacio = false;
@@ -123,7 +123,7 @@ if (navigator.mediaDevices) {
          gravacio = false;
          rec.stop();
       }else {
-         document.getElementById("div_error").innerText = "iniciant gravaciÃ³ ...";
+         document.getElementById("div_error").innerText = "iniciant gravació ...";
          gravacio = true;
          audioChunks = [];
          rec.start();

@@ -24,14 +24,8 @@ from flask_socketio import SocketIO
 
 from gtts import gTTS
 import soundfile as sf
-
-import pyaudio
-import wave
-
 import pyworld as pw
 from pydub import AudioSegment
-from pydub.playback import play
-
 import speech_recognition as sr
 
 # -----------------
@@ -59,7 +53,7 @@ tmp3 = "static/tmp/temp.mp3"
 twav = "static/tmp/temp.wav"
 gmp3 = "static/tmp/gravacio.mp3"
 gwav = "static/tmp/gravacio.wav"
-beep = f"{dir_recursos}/laser.wav"
+beep = f"{dir_recursos}/beep.wav"
 beep_error = f"{dir_recursos}/error.wav"
 
 pendent_escolta = False  #indica si ha arribat el moment d'escoltar l'actor
@@ -79,7 +73,7 @@ Narrador = "narrador"
 def crear_app():
    app = Flask(__name__) #instancia de Flask
    socketio = SocketIO(app)
-   #key_secret = os.getenv("API_KEY")
+   key_secret = os.getenv("API_KEY")
 
    @app.route("/")
    def index():
@@ -97,29 +91,35 @@ def crear_app():
 
    @app.route('/desa-gravacio', methods=['POST'])
    def desa_gravacio():
-       print("request.files", request.files, end="\n\n")
-       if 'file' not in request.files:
-           print('No hi ha element file')
-           return redirect(request.url)
+      if 'file' not in request.files:
+         flash('No hi ha element file')
+         return redirect(request.url)
+      if request.files['file'].filename == '':
+         flash('No has seleccionat cap fitxer')
+         return redirect(request.url)
 
-       file = request.files['file']
-       print("file.filename", file.filename, end="\n\n")
-
-       if file.filename == '':
-           flash('No has seleccionat cap fitxer')
-           return redirect(request.url)
-
-       file.save(file.filename)
-       return file.filename
+      print(f"{CB_BLU}desa_gravacio:{C_NONE}", request.files['file'].filename, end="\n\n")
+      file = request.files['file']
+      file.save(file.filename)
+      return file.filename
 
 
-   def beep():
-      song = AudioSegment.from_wav(beep)
-      play(song)
+   '''
+   Espera 1 segon per rebre la gravació feta en el client
+   '''
+   def espera_gravacio(arxiu):
+      c = 0
+      while not os.path.exists(arxiu) and c <= 20:
+         time.sleep(0.1)
+         c += 1
+         print(f"espera gravacio: {c}")
+      return os.path.exists(arxiu)
 
-   def beep_error():
-      song = AudioSegment.from_wav(beep_error)
-      play(song)
+   def espera(l):
+      c = 0
+      while c <= l:
+         time.sleep(0.1)
+         c += 1
 
    '''
    Compara 2 textos i indica el percentatge de semblances
@@ -169,87 +169,10 @@ def crear_app():
    def audio_a_text(warxiu):
       r = sr.Recognizer()
       with sr.AudioFile(warxiu) as source:
-         audio = r.record(source)  # read the entire audio file
+         audio = r.record(source)  # llegeix l'arxiu d'audio sencer
 
       text_reconegut = reconeixement_d_audio(audio, r)
       return text_reconegut
-
-   '''
-   Grava un text a un arxiu d'audio
-   @type text: string; text que es grava
-   @type wfile: string; nom del fitxer wav on es grava la veu
-   '''
-   def grava_audio(text, wfile):
-      fragment = 1024
-      format = pyaudio.paInt16
-      canals = 1     # channels, must be one for forced alignment toolkit to work
-      taxa = 16000   # freqüència de mostreig (sample rate)
-      temps = int(round(len(text)/10,0))  # segons de temps per poder dir la frase
-
-      #print(f"Llegeix en veu alta: {text}", end=" ")
-      beep()
-
-      p = pyaudio.PyAudio()
-      stream = p.open(format=format, channels=canals, rate=taxa, input=True, frames_per_buffer=fragment)
-
-      frames = []
-      for i in range(0, int(taxa / fragment * temps)):
-          data = stream.read(fragment)
-          frames.append(data)
-
-      stream.stop_stream()
-      stream.close()
-      p.terminate()
-
-      with wave.open(wfile, 'wb') as wf:
-          wf.setnchannels(canals)
-          wf.setsampwidth(p.get_sample_size(format))
-          wf.setframerate(taxa)
-          wf.writeframes(b''.join(frames))
-
-
-   '''
-   Genera un arxiu de text a partir de la veu captada pel micròfon
-   @type text: string; text que es llegeiix davant del micròfon
-   '''
-   def escolta_microfon(text):
-      timeout = 3    #temps que espera a sentir veu abans de generar una Excepció
-      time_limit = int(round(len(text)/10,0))  # nombre de segons de temps per poder dir la frase
-
-      r = sr.Recognizer()
-      beep()
-      with sr.Microphone() as source:
-          audio = r.adjust_for_ambient_noise(source)
-          audio = r.listen(source, timeout=timeout, phrase_time_limit=time_limit)
-          with open(twav, "wb") as f:
-            f.write(audio.get_wav_data())
-
-      song = AudioSegment.from_wav(twav)
-      text_reconegut = reconeixement_d_audio(song, r)
-      print(f"text_reconegut: {text_reconegut}")
-      return text_reconegut
-
-   '''
-   Grava en viu la veu de l'actor, genera el text corresponent i el compara amb el text que li correspon
-   @type text: string; text que es vol gravar
-   '''
-   def escolta_actor(text, ends):
-      global actor, audio_pendent
-      #nou_text = escolta_microfon(text)
-      grava_audio(text, gwav)
-      nou_text = audio_a_text(gwav)
-      encert = 0
-      if nou_text:
-         encert = ComparaSekuenciesDeText(text, nou_text)
-      if encert < 90:
-         beep_error()
-         print(f"encert: {encert}", " ")
-         socketio.emit('new_line', {'frase':"", 'error':f"No ho he entès bé: {encert}%"})  # Enviar dades al client
-         ret = text_a_audio(text, Personatges[actor.capitalize()], ends)
-      else:
-         ret = mostra_sentencia(text, ends)
-
-      return ret
 
    '''
    Mostra el text que s'està processant.
@@ -279,7 +202,6 @@ def crear_app():
 
           # Convertir l'objecte mp3 a wav
           audio = AudioSegment.from_mp3(tmp3)
-          #play(audio)
           audio.export(twav, format="wav")
 
           # tractament de l'audio
@@ -288,9 +210,50 @@ def crear_app():
           yy = pw.synthesize(f0/grave, sp/reduction, ap, samplerate/speed, pw.default_frame_period)
           sf.write(twav, yy, samplerate)
           audio_pendent = AudioSegment.from_wav(twav)
-          #play(audio_pendent)
 
       return mostra_sentencia(text, ends)
+
+   '''
+   Grava en viu la veu de l'actor, genera el text corresponent i el compara amb el text que li correspon
+   @type text: string; text que es vol gravar
+   '''
+   def escolta_actor(text, ends):
+      global actor, audio_pendent
+      print(f"{CB_BLU}escolta_actor: {CB_YLW}{text}{C_NONE}")
+      if espera_gravacio(gmp3):
+         # Convertir l'objecte mp3 a wav
+         try:
+            print(f"{CB_BLU}Convertir l'objecte mp3 a wav{C_NONE}")
+            audio = AudioSegment.from_mp3(gmp3)
+            audio.export(gwav, format="wav")
+            nou_text = audio_a_text(gwav)
+            print(f"{CB_BLU}nou_text: {CB_YLW}{nou_text}{C_NONE}")
+         except:
+            nou_text = None
+         os.remove(gmp3)
+      encert = 0
+      if 'nou_text' in locals() and nou_text:
+         encert = ComparaSekuenciesDeText(text, nou_text)
+      if encert < 90:
+         print(f"encert: {encert}%", " ")
+         socketio.emit('new_line', {'frase':"", 'error':f"No ho he entès bé: {encert}%", 'beep':beep_error})  # Enviar la línia al client
+         ret = text_a_audio(text, Personatges[actor.capitalize()], ends)
+      else:
+         ret = mostra_sentencia(text, ends)
+
+      return ret
+
+   '''
+   S'atura el thread mentre dura la gabacio
+   '''
+   def en_process_de_grabacio(ret):
+      global en_grabacio
+      if en_grabacio or pendent_escolta:
+         print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
+         socketio.emit('new_line', {'frase':ret, 'estat':"gravacio", 'beep':beep})  # Enviar el text al client
+         #espera(len(ret)/10)
+         #socketio.emit('new_line', {'frase':"", 'estat':"gravacio"})  # Enviar el text al client
+      en_grabacio = False
 
    """
    Parteix la sentència en fragments que puguin ser processats per gTTs
@@ -327,18 +290,6 @@ def crear_app():
          ini += long_max
 
       return ret
-
-   '''
-   S'atura el thread mnetre dura la gabacio
-   '''
-   def en_process_de_grabacio(ret):
-      global en_grabacio
-      if en_grabacio or pendent_escolta:
-         print(f"{CB_BLU}en_process_de_grabacio{C_NONE}", ret)
-         beep()
-         time.sleep(len(ret)/12)
-         socketio.emit('new_line', {'frase':ret, 'estat':"gravacio"})  # Enviar el text al client
-      en_grabacio = False
 
    '''
    Lectura del text sencer o de l'escena seleccionada de l'obra
@@ -395,8 +346,6 @@ def crear_app():
             retard = len(ret)/12 if posa_audio else 0.5
             socketio.emit('new_line', {'frase':ret, 'estat':estat, 'audio':posa_audio})  # Enviar el text al client
             time.sleep(retard)
-            if audio_pendent:
-               play(audio_pendent)
 
    def principal():
       global actor, base_arxiu_text, estat
@@ -490,4 +439,3 @@ if __name__ == "__main__":
    así, se activa el reconocimento de las aplicaciones Python en el puerto 5000 de localhost
    '''
    app.run(host='localhost', port=5000, debug=False)
-
