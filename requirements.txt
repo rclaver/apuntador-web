@@ -4,7 +4,7 @@ Flask-SocketIO==5.5.1
 gTTS>=2.5.1
 gunicorn==23.0.0
 pydub==0.25.1
-setuptools==75.6.0
+setuptools
 pyworld==0.3.4
 SocketIO
 soundfile>=0.12.1
