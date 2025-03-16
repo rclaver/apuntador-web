@@ -23,8 +23,6 @@ body {
   display: block;
 }
 .error {
-  /*display: none;
-  visibility: hidden;*/
   margin-bottom: 5px;
   text-align: left;
   color: red;

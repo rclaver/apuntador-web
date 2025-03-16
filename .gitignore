@@ -1,8 +1,8 @@
 .htaccess
 .env
-tmp/
-*.mp3
-*.wav
+ggtmp/
+gg*.mp3
+gg*.wav
 *.pyc
 .venv
 .spyproject

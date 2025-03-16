@@ -196,4 +196,3 @@ if (navigator.mediaDevices) {
       }
    };
 }
-

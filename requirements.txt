@@ -34,6 +34,3 @@ cffi
 simple-websocket
 python-engineio
 python-socketio
-
-#setuptools
-#netifaces
