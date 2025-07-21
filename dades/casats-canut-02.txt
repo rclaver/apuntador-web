@@ -11,7 +11,7 @@ Pompeu: No, home! Ha estat una coincidència. Tinc una bona amistat amb els memb
 Canut: Ziiií?
 Tina: Es amic de la Mar. I tots els amics de les meves filles són amics meus.
 Pompeu: (Per l'Emma.) Una altra filla, suposo...
-Emma: (Oferint-li la mà.)Em dic Emma.
+Emma: (Oferint-li la mà.) Em dic Emma.
 Pompeu: (Encaixant.) Pompeu Rius, pare d'aquest trapella! (A en Canut.) Tens bon gust, maco!
 Canut: Papà, no et prezipitiz.
 Emma: Ens acabem de conèixer.
@@ -22,7 +22,7 @@ Pompeu: De tota manera, fill meu, tu i jo hem de parlar detingudament. D'home a 
 Tina: Pobre xicot! Sermó a la vista.
 Pompeu: No sóc cap pare temible, Tina. A més, el noi és major d'edat i sap el que es fa. Però ha d'escoltar la veu de l'experiència. Els consells del pare sempre van bé.
 Tina: I els de la mare... Oi, nenes?
-Mar I Emma: (A l'una.)Sí, mami!
+Mar I Emma: (A l'una.) Sí, mami!
 Pompeu: Ja ho sents, Canut.
 Canut: Zí, papi!
 Tina: Sí, senyor! No hi ha res com parlar amb franquesa... i sense testimonis. Nenes, aquí sobrem!
@@ -55,7 +55,7 @@ Pompeu: T'has de casar!
 Canut: No "fotiz"!
 (Cau de cul en un seient.)
 Pompeu: T'has de casar, fill meu!
-Canut: (Aixecant-se.)Però, papà... Zi zóc molt jove, encara.
+Canut: (Aixecant-se.) Però, papà... Zi zóc molt jove, encara.
 Pompeu: No hi ha altre remei.
 Canut: Zi ni tan zolz feztejo.
 Pompeu: I que me'n dius, de l'Emma?
@@ -125,4 +125,3 @@ Mar: Doncs vine amb mi, que en tinc una bona col·lecció.
 (Li agafa el braç i se l'emporta a la porta dreta, iniciant el mutis.)
 Canut: Tindrem vetllada muzical.
 (Mutis de la Mar i en Canut, amb els gots. En Pompeu i la Tina els segueixen amb la mirada. Després es miren l'un a l'altre. Petita pausa.)
-

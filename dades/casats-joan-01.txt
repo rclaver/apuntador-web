@@ -1,6 +1,3 @@
-Inici de l'escena Joan-102
-pàgina 7
-
 Acte Segon
 
 Justa: (Dins.) Ja vaig a obrir! Ja hi corro! Ja obro!
@@ -9,7 +6,7 @@ Justa: Quina llesca! Sempre truquen quan estic més enfeinada!
 (Fa mutis pel fons. Poc després, torna a entrar precedint en Joan, jove correcte, que du una cartera a la mà.)
 Justa: Passi, senyor Argiler, Vostè es com de casa.
 Joan: Hi és, la senyoreta Gisela?
-Justa: Crec que sí. Fa un moment, hi era. Si no ha sortit, que em sembla que no, perquè m'ho hauria dit, ja que sempre que surt m'ho diu, és a la mansió. Segui, segui, que ho miraré.
+Justa: Crec que sí. Fa un moment, hi era. Si no ha sortit, que em sembla que no, perquè m'ho hauria dit, ja que sempre que surt m'ho diu. És a la mansió. Segui, segui, que ho miraré.
 Joan: Gràcies, Justa. (Seu.)
 Justa: De res. És la meva obligació. Per això em paguen.
 Joan: És lògic!
@@ -74,5 +71,3 @@ Gisela: No saps com m'alegra tenir-te de mestre!
 (Fa mutis per la porta esquerra)
 Joan: I a mi! Poder ser-te útil i estar a prop teu.
 (Fa mutis.)
-
-Final de l'escena Joan-102

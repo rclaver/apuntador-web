@@ -1,5 +1,8 @@
-Inici de l'escena Joan-104
-pàgina 13
+Gisela: El minaire!
+Justa: Anava sense casc! Vull dir que no sembla un cavador... Més aviat, dels qui manen cavar... Un amo, un empresari... un gall vell burgès.
+Gisela: Vell?
+Justa: Dona! Encara no ha arribat a la tercera edat, però ja fa anys que l'han deslletat. Deu tenir el seu encant, perquè la Mar hi estava molt engrescada.
+Gisela: M'imagino on té l'encant.
 
 (En Joan entra per la porta esquerra.)
 Joan: Què passa, Gisela?
@@ -44,5 +47,3 @@ Gisela: No del tot!
 Gisela: Seguirem fent pràctiques amb l'ordinador.
 
 (Riuen, tot fent mutis)
-
-Final de l'escena Joan-104
